@@ -1,0 +1,87 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class EventManagementApp extends JFrame {
+
+    private Connection connection;
+
+    public EventManagementApp() {
+        initializeUI();
+        connectToDatabase();
+    }
+
+    private void initializeUI() {
+        setTitle("Event Management System");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JButton createEventButton = new JButton("Create Event");
+        createEventButton.addActionListener(e -> createEvent());
+
+        JButton manageAttendeesButton = new JButton("Manage Attendees");
+        manageAttendeesButton.addActionListener(e -> manageAttendees());
+
+        setLayout(new GridLayout(2, 1));
+        add(createEventButton);
+        add(manageAttendeesButton);
+    }
+
+    private void connectToDatabase() {
+        try {
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/event_management", "username", "password");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database connection failed!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private void createEvent() {
+        JTextField eventNameField = new JTextField();
+        JTextField eventDateField = new JTextField();
+        JTextField eventLocationField = new JTextField();
+        JTextArea eventDescriptionArea = new JTextArea();
+
+        Object[] message = {
+            "Event Name:", eventNameField,
+            "Event Date (YYYY-MM-DD):", eventDateField,
+            "Location:", eventLocationField,
+            "Description:", eventDescriptionArea
+        };
+
+        int option = JOptionPane.showConfirmDialog(this, message, "Create Event", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String name = eventNameField.getText();
+            String date = eventDateField.getText();
+            String location = eventLocationField.getText();
+            String description = eventDescriptionArea.getText();
+
+            try {
+                PreparedStatement ps = connection.prepareStatement("INSERT INTO events (name, date, location, description) VALUES (?, ?, ?, ?)");
+                ps.setString(1, name);
+                ps.setString(2, date);
+                ps.setString(3, location);
+                ps.setString(4, description);
+                ps.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Event created successfully!");
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error creating event!", "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void manageAttendees() {
+        // Implement attendee management functionality here
+        JOptionPane.showMessageDialog(this, "Manage Attendees feature coming soon!");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            EventManagementApp app = new EventManagementApp();
+            app.setVisible(true);
+        });
+    }
+}
